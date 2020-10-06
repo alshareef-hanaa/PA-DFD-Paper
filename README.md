@@ -31,17 +31,13 @@ Usage
 
 
 
-Examples
+Example
 ------------
 
-There are some examples in the examples directory
+Amazon_dfd_in_comp.drawio contains subpart of the case study which is Amazon level-0 DFD. This example focus on the usage hotspot. The DFD is exported as xml file from drawio tool and called Amazon_dfd_in_comp.xml. From the directory where we have the script(dfd_to_padfd.py) and aforementioned file, we have run the following:
 
-### Example 1: 
-
-Amazon_dfd_comp.drawio contains subpart of the case study which is Amazon level-0 DFD. This example focus on the usage hotspot. The DFD is exported as xml file from drawio tool and called Amazon_dfd_comp.xml. From the directory where we have the script(dfd_to_padfd.py) and aforementioned file, we have run the following:
-
-     $ python dfd_to_padfd.py Amazon_dfd_comp.xml  Amazon_dfd_comp.csv
-       Amazon_padfd_comp.csv Amazon_padfd_comp.xml 
+     $ python dfd_to_padfd.py Amazon_dfd_in_comp.xml  Amazon_dfd_in_comp.csv
+       Amazon_padfd_in_comp.csv Amazon_padfd_in_comp.xml 
 
 where the third, fourth and fifth arguments are the name of DFD csv file, PA-DFD csv file and PA-DFD xml file, respectively.
-After this terminated successfully, we got PA-DFD in format of xml file (Amazon_dfd_comp.xml). In order to get PA-DFD diagram, we have imported/opened Amazon_padfd_comp.xml in drawio. Finally, we have modified the layout of PA-DFD to have readable diagram.
+After this terminated successfully, we got PA-DFD in format of xml file (Amazon_dfd_in_comp.xml). In order to get PA-DFD diagram, we have imported/opened Amazon_padfd_in_comp.xml in drawio. Finally, we have modified the layout of PA-DFD to have readable diagram.
