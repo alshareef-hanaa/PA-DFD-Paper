@@ -21,6 +21,11 @@ def initialize(xmlfile_DFD, csvfile_DFD):
                             news['source'] = 'null'
                             news['target'] = 'null'
                             news['type'] = 'external_entity'
+                        elif "doubleEllipse" in child.attrib['style']:
+                            news['style'] = 'ellipse;shape=doubleEllipse'
+                            news['source'] = 'null'
+                            news['target'] = 'null'
+                            news['type'] = 'composite_process'
                         elif child.attrib['style'].startswith("ellipse"):
                             news['style'] = 'ellipse'
                             news['source'] = 'null'
@@ -68,15 +73,15 @@ def generate_dfd_graph(original):
 def get_data_flow_types(dfd_graph):
     for index, data_flow in dfd_graph.items():
         if data_flow['style'] == 'endArrow=classic':
-            if dfd_graph[data_flow['source']]['style'] == 'rounded=0' and dfd_graph[data_flow['target']]['style'] == 'ellipse':
+            if dfd_graph[data_flow['source']]['style'] == 'rounded=0' and (dfd_graph[data_flow['target']]['style'] == 'ellipse' or dfd_graph[data_flow['target']]['style'] == 'ellipse;shape=doubleEllipse'):
                 dfd_graph[index]['type'] = 'in'
-            elif dfd_graph[data_flow['source']]['style'] == 'ellipse' and dfd_graph[data_flow['target']]['style'] == 'rounded=0':
+            elif (dfd_graph[data_flow['source']]['style'] == 'ellipse' or dfd_graph[data_flow['source']]['style'] == 'ellipse;shape=doubleEllipse') and dfd_graph[data_flow['target']]['style'] == 'rounded=0':
                 dfd_graph[index]['type'] = 'out'
-            elif dfd_graph[data_flow['source']]['style'] == 'ellipse' and dfd_graph[data_flow['target']]['style'] == 'ellipse':
+            elif (dfd_graph[data_flow['source']]['style'] == 'ellipse' or dfd_graph[data_flow['source']]['style'] == 'ellipse;shape=doubleEllipse') and (dfd_graph[data_flow['target']]['style'] == 'ellipse' or dfd_graph[data_flow['target']]['style'] == 'ellipse;shape=doubleEllipse'):
                 dfd_graph[index]['type'] = 'comp'
-            elif dfd_graph[data_flow['source']]['style'] == 'ellipse' and dfd_graph[data_flow['target']]['style'] == 'shape=partialRectangle':
+            elif (dfd_graph[data_flow['source']]['style'] == 'ellipse' or dfd_graph[data_flow['source']]['style'] == 'ellipse;shape=doubleEllipse') and dfd_graph[data_flow['target']]['style'] == 'shape=partialRectangle':
                 dfd_graph[index]['type'] = 'store'
-            elif dfd_graph[data_flow['source']]['style'] == 'shape=partialRectangle' and dfd_graph[data_flow['target']]['style'] == 'ellipse':
+            elif dfd_graph[data_flow['source']]['style'] == 'shape=partialRectangle' and (dfd_graph[data_flow['target']]['style'] == 'ellipse' or dfd_graph[data_flow['target']]['style'] == 'ellipse;shape=doubleEllipse'):
                 dfd_graph[index]['type'] = 'read'
         if data_flow['style'] == 'endArrow=cross':
             dfd_graph[index]['type'] = 'delete'
@@ -91,7 +96,8 @@ def add_common_entities_pa_dfd(dfd_graph_typed,len_of_dfd_elements,limit_counter
                                                 'style': 'ellipse', 'source': 'null', 'target': 'null',
                                                 'type': 'limit'}
         len_of_dfd_elements = len_of_dfd_elements + 1
-        dfd_graph_typed[len_of_dfd_elements] = {'id': len_of_dfd_elements, 'value': '(p)request %d' % request_counter,
+        dfd_graph_typed[len_of_dfd_elements] = {'id': len_of_dfd_elements, 'value': ''
+                                                                                    'request %d' % request_counter,
                                                 'style': 'ellipse', 'source': 'null', 'target': 'null',
                                                 'type': 'request'}
         len_of_dfd_elements = len_of_dfd_elements + 1
@@ -111,12 +117,12 @@ def add_common_entities_pa_dfd(dfd_graph_typed,len_of_dfd_elements,limit_counter
 def generate_pa_dfd_graph(dfd_graph_typed):
     len_of_dfd_elements = len(dfd_graph_typed) + 2
     
-    # for transformation, we add new reason process for each process type
+    # for transformation, we add new reason process for each process and composite process types
     reason_counter = 0
     for index, data_flow_typed in list(dfd_graph_typed.items()):
-        if data_flow_typed['style'] == 'ellipse' and data_flow_typed['type'] == 'process':
+        if (data_flow_typed['style'] == 'ellipse' and data_flow_typed['type'] == 'process') or (data_flow_typed['style'] == 'ellipse;shape=doubleEllipse' and data_flow_typed['type'] == 'composite_process'):
             dfd_graph_typed[len_of_dfd_elements] = {'id': len_of_dfd_elements,
-                                                    'value': '(p)reason %s' % data_flow_typed['value'],
+                                                    'value': 'reason %s' % data_flow_typed['value'],
                                                     'style': 'ellipse', 'source': 'null',
                                                     'target': 'null', 'type': 'reason',
                                                     'for_process': data_flow_typed['id']}
@@ -389,7 +395,7 @@ def generate_pa_dfd_graph(dfd_graph_typed):
                                                                               limit_counter, request_counter,
                                                                               log_counter, DB_log_counter)
             # add the new elements
-            dfd_graph_typed[len_of_dfd_elements] = {'id': len_of_dfd_elements, 'value': '(p) clean %d' % clean_counter,
+            dfd_graph_typed[len_of_dfd_elements] = {'id': len_of_dfd_elements, 'value': 'clean %d' % clean_counter,
                                                     'style': 'ellipse', 'source': 'null', 'target': 'null',
                                                     'type': 'clean'}
             len_of_dfd_elements = len_of_dfd_elements + 1
@@ -1021,14 +1027,14 @@ def generate_pa_dfd_xml(csvfile_PA_DFD, xmlfile_PA_DFD):
                     else:
                         xmlData.write('{} "{};whiteSpace=wrap;" '.format(att3, str(row[i])))
                     style = row[i]
-                    if row[i] in ['ellipse', 'rounded=0', 'shape=partialRectangle']:
+                    if row[i] in ['ellipse;shape=doubleEllipse' , 'ellipse', 'rounded=0', 'shape=partialRectangle']:
                         xmlData.write('{}="1" {}="1" {}'.format(vertex, parent, end))
                 if i == 3 and row[i] != 'null':
                     xmlData.write('{} "{}" '.format(att4, str(row[i])))
                 if i == 4 and row[i] != 'null':
                     xmlData.write('{} "{}" '.format(att5, str(row[i])))
                     xmlData.write('{}="1" {}="1" >'.format(edge, parent, ))
-            if style in ['ellipse', 'rounded=0', 'shape=partialRectangle']:
+            if style in ['ellipse;shape=doubleEllipse','ellipse', 'rounded=0', 'shape=partialRectangle']:
                 xmlData.write("\n" + ' <mxGeometry x="560" y="480" width="100" height="100" as="geometry"/>' + "\n")
             if style in ['endArrow=classic', 'endArrow=cross']:
                 xmlData.write("\n" + '<mxGeometry width="50" height="50" as="geometry">' + "\n")
